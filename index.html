@@ -1,226 +1,214 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>The Password Game: Progressive Edition</title>
+    <meta charset="UTF-8">
+    <title>The Password Game: Speedrun Edition</title>
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #1a1a1a;
-            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 50px;
-            transition: background 0.5s ease;
+            padding: 40px;
+            transition: background 0.5s;
         }
 
         .container {
-            background: #2d2d2d;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            width: 480px;
+            background: #1e1e1e;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            width: 100%;
+            max-width: 500px;
             text-align: center;
+        }
+
+        #progress-container {
+            font-size: 1.2rem;
+            color: #ffd700;
+            margin-bottom: 1rem;
+            font-weight: bold;
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            border: 2px solid #444;
+            padding: 15px;
+            border: 2px solid #333;
             border-radius: 8px;
-            background: #111;
-            color: #FFD700;
-            font-size: 18px;
+            background: #000;
+            color: #fff;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
             box-sizing: border-box;
             outline: none;
-            transition: all 0.3s;
-        }
-
-        #progress-container {
-            color: #FFD700;
-            margin-bottom: 15px;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .rule {
-            text-align: left;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 8px;
-            background: #441111;
-            color: #ff9999;
-            border: 1px solid #662222;
-            font-size: 14px;
-            display: none; /* Hidden until unlocked */
-            animation: slideIn 0.3s ease forwards;
-        }
-
-        .rule.visible { display: block; }
-
-        .rule.success {
-            background: #113311;
-            color: #99ff99;
-            border: 1px solid #226622;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        #leaderboard {
-            margin-top: 20px;
-            font-size: 13px;
-            color: #aaa;
-            border-top: 1px solid #444;
-            padding-top: 15px;
-        }
-
-        #bestScore { color: #FFD700; font-weight: bold; }
-
-        button {
-            background: linear-gradient(#FFD700, #DAA520);
-            border: none;
-            padding: 12px 25px;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            display: none;
-            margin-top: 20px;
-            color: #000;
+            transition: box-shadow 0.3s, border-color 0.3s;
         }
 
         .stats-row {
             display: flex;
             justify-content: space-around;
-            margin-bottom: 10px;
-            font-size: 12px;
+            margin-bottom: 15px;
+            font-family: monospace;
             color: #888;
+        }
+
+        .rule {
+            text-align: left;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            background: #2a1111;
+            color: #ffb3b3;
+            border-left: 5px solid #ff4444;
+            display: none;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .rule.visible { display: block; }
+
+        .rule.success {
+            background: #112a11;
+            color: #b3ffb3;
+            border-left: 5px solid #44ff44;
+        }
+
+        #winBtn {
+            background: #ffd700;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        #leaderboard {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>The Password Game</h1>
-        
-        <div id="progress-container">
-            Rules Unlocked: <span id="rules-cleared">1</span> / 10
-        </div>
-
-        <div class="stats-row">
-            <span id="len-tracker">Length: 0</span>
-            <span id="sum-tracker">Digit Sum: 0</span>
-        </div>
-
-        <input type="text" id="passwordInput" oninput="checkPassword()" placeholder="Choose a password...">
-
-        <div id="rulesList">
-            <div id="rule-len" class="rule visible">Rule 1: Must be at least 5 characters</div>
-            <div id="rule-num" class="rule">Rule 2: Must include a number</div>
-            <div id="rule-cap" class="rule">Rule 3: Must include an uppercase letter</div>
-            <div id="rule-elem" class="rule">Rule 4: Must include an element (gold, iron, tin, etc.)</div>
-            <div id="rule-roman" class="rule">Rule 5: Must include a Roman numeral</div>
-            <div id="rule-emoji" class="rule">Rule 6: Must include an emoji</div>
-            <div id="rule-sum" class="rule">Rule 7: Digits must add up to 25</div>
-            <div id="rule-leap" class="rule">Rule 8: Must include a leap year</div>
-            <div id="rule-self" class="rule">Rule 9: Must include its own length</div>
-            <div id="rule-fire" class="rule">Rule 10: Must contain the word "fire"</div>
-        </div>
-
-        <button id="winBtn" onclick="recordWin()">SUBMIT PASSWORD</button>
-
-        <div id="leaderboard">
-            🏆 Shortest Record: <span id="bestScore">None</span> by <span id="bestUser">None</span>
-        </div>
+<div class="container">
+    <h1>Password Game 2</h1>
+    
+    <div id="progress-container">
+        Rules Unlocked: <span id="rules-cleared">1</span> / 10
     </div>
 
-    <script>
-        // Load Leaderboard on start
-        window.onload = updateLeaderboard;
+    <div class="stats-row">
+        <span>Len: <b id="stat-len">0</b></span>
+        <span>Sum: <b id="stat-sum">0</b></span>
+    </div>
 
-        function checkPassword() {
-            const pw = document.getElementById("passwordInput").value;
-            const len = pw.length;
+    <input type="text" id="passwordInput" oninput="checkPassword()" placeholder="Type your password...">
 
-            // Update Trackers
-            document.getElementById("len-tracker").innerText = "Length: " + len;
-            const digits = pw.match(/\d/g) || [];
-            const digitSum = digits.reduce((a, b) => a + parseInt(b), 0);
-            document.getElementById("sum-tracker").innerText = "Digit Sum: " + digitSum;
+    <div id="rulesList">
+        <div id="rule-len" class="rule visible">Rule 1: Length must be at least 5</div>
+        <div id="rule-num" class="rule">Rule 2: Must include a number</div>
+        <div id="rule-cap" class="rule">Rule 3: Must include an uppercase letter</div>
+        <div id="rule-elem" class="rule">Rule 4: Must include an element symbol (H, C, Au, Sn...)</div>
+        <div id="rule-roman" class="rule">Rule 5: Must include a Roman numeral (I, V, X...)</div>
+        <div id="rule-emoji" class="rule">Rule 6: Must include an emoji</div>
+        <div id="rule-sum" class="rule">Rule 7: Digit sum must be 25</div>
+        <div id="rule-leap" class="rule">Rule 8: Must include a 4-digit leap year</div>
+        <div id="rule-self" class="rule">Rule 9: Must include its own length</div>
+        <div id="rule-fire" class="rule">Rule 10: Must include the word "fire"</div>
+    </div>
 
-            // Define Rules
-            const rules = [
-                { id: "rule-len", check: len >= 5 },
-                { id: "rule-num", check: /[0-9]/.test(pw) },
-                { id: "rule-cap", check: /[A-Z]/.test(pw) },
-                { id: "rule-elem", check: ["gold", "iron", "tin", "oxygen", "silver", "carbon"].some(el => pw.toLowerCase().includes(el)) },
-                { id: "rule-roman", check: /[IVXLCDM]/.test(pw) },
-                { id: "rule-emoji", check: /\p{Extended_Pictographic}/u.test(pw) },
-                { id: "rule-sum", check: digitSum === 25 },
-                { id: "rule-leap", check: (pw.match(/\d{4}/g) || []).some(y => (y%4==0 && y%100!=0) || y%400==0) },
-                { id: "rule-self", check: pw.includes(len.toString()) },
-                { id: "rule-fire", check: pw.toLowerCase().includes("fire") }
-            ];
+    <button id="winBtn" onclick="recordWin()">SUBMIT RECORD</button>
 
-            let allPreviousMet = true;
-            let unlockedCount = 0;
+    <div id="leaderboard">
+        🏆 Record: <span id="bestScore">--</span> by <span id="bestUser">--</span>
+    </div>
+</div>
 
-            rules.forEach((rule) => {
-                const el = document.getElementById(rule.id);
+<script>
+    window.onload = updateLeaderboard;
+
+    function checkPassword() {
+        const pw = document.getElementById("passwordInput").value;
+        const len = pw.length;
+        
+        // Trackers
+        const digits = pw.match(/\d/g) || [];
+        const sum = digits.reduce((a, b) => a + parseInt(b), 0);
+        document.getElementById("stat-len").innerText = len;
+        document.getElementById("stat-sum").innerText = sum;
+
+        const rules = [
+            { id: "rule-len", check: len >= 5 },
+            { id: "rule-num", check: /[0-9]/.test(pw) },
+            { id: "rule-cap", check: /[A-Z]/.test(pw) },
+            { id: "rule-elem", check: /(H|He|Li|Be|B|C|N|O|F|Ne|Na|Mg|Al|Si|P|S|Cl|Ar|K|Ca|Fe|Au|Ag|Sn|Pb|gold|iron|tin|carbon|oxygen)/i.test(pw) },
+            { id: "rule-roman", check: /[IVXLCDM]/.test(pw) },
+            { id: "rule-emoji", check: /\p{Extended_Pictographic}/u.test(pw) },
+            { id: "rule-sum", check: sum === 25 },
+            { id: "rule-leap", check: (pw.match(/\d{4}/g) || []).some(y => (y%4==0 && y%100!=0) || y%400==0) },
+            { id: "rule-self", check: pw.includes(len.toString()) },
+            { id: "rule-fire", check: pw.toLowerCase().includes("fire") }
+        ];
+
+        let canUnlockNext = true;
+        let visibleCount = 0;
+
+        rules.forEach(rule => {
+            const el = document.getElementById(rule.id);
+            if (canUnlockNext || el.classList.contains("visible")) {
+                el.classList.add("visible");
+                visibleCount++;
                 
-                // STICKY LOGIC: Show if previous are met OR if it's already shown
-                if (allPreviousMet || el.classList.contains("visible")) {
-                    el.classList.add("visible");
-                    unlockedCount++;
-                    
-                    if (rule.check) {
-                        el.classList.add("success");
-                        el.innerHTML = "✅ " + el.innerHTML.replace("✅ ", "").replace("❌ ", "");
-                    } else {
-                        el.classList.remove("success");
-                        el.innerHTML = "❌ " + el.innerHTML.replace("✅ ", "").replace("❌ ", "");
-                        allPreviousMet = false; // Stop unlocking new ones
-                    }
+                if (rule.check) {
+                    el.classList.add("success");
+                } else {
+                    el.classList.remove("success");
+                    canUnlockNext = false; 
                 }
-            });
-
-            document.getElementById("rules-cleared").innerText = unlockedCount;
-
-            // Show Win Button only if EVERY rule is met
-            const allMet = rules.every(r => r.check);
-            document.getElementById("winBtn").style.display = allMet ? "inline-block" : "none";
-
-            // Fire Effect
-            if (pw.toLowerCase().includes("fire")) {
-                document.getElementById("passwordInput").style.boxShadow = "0 0 15px #ff4500";
-            } else {
-                document.getElementById("passwordInput").style.boxShadow = "none";
             }
-        }
+        });
 
-        function recordWin() {
-            const pw = document.getElementById("passwordInput").value;
-            const currentBest = localStorage.getItem("bestLen") || Infinity;
-            
-            if (pw.length < currentBest) {
-                const name = prompt("NEW WORLD RECORD! Enter your name:");
-                localStorage.setItem("bestLen", pw.length);
-                localStorage.setItem("bestUser", name || "Anonymous");
-                updateLeaderboard();
-            }
-            alert("VICTORY! Your password is secure.");
-        }
+        document.getElementById("rules-cleared").innerText = visibleCount;
+        document.getElementById("winBtn").style.display = rules.every(r => r.check) ? "block" : "none";
+        
+        // Fire Glow Effect
+        document.getElementById("passwordInput").style.boxShadow = pw.toLowerCase().includes("fire") 
+            ? "0 0 20px #ff4500" : "none";
+    }
 
-        function updateLeaderboard() {
-            const best = localStorage.getItem("bestLen");
-            if (best) {
-                document.getElementById("bestScore").innerText = best + " chars";
-                document.getElementById("bestUser").innerText = localStorage.getItem("bestUser");
-            }
+    function recordWin() {
+        const len = document.getElementById("passwordInput").value.length;
+        const best = localStorage.getItem("pwBest") || 999;
+        if (len < best) {
+            const name = prompt("NEW RECORD! Name:");
+            localStorage.setItem("pwBest", len);
+            localStorage.setItem("pwUser", name || "Anonymous");
+            updateLeaderboard();
         }
-    </script>
+        alert("You did it!");
+    }
+
+    function updateLeaderboard() {
+        const b = localStorage.getItem("pwBest");
+        if(b) {
+            document.getElementById("bestScore").innerText = b + " chars";
+            document.getElementById("bestUser").innerText = localStorage.getItem("pwUser");
+        }
+    }
+</script>
+
 </body>
 </html>
