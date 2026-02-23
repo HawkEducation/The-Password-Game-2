@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>The Password Game: Admin Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Password Game: Hawk Edition</title>
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -11,16 +12,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 40px;
+            padding: 20px;
         }
 
         .container {
             background: #161616;
-            padding: 2.5rem;
+            padding: 2rem;
             border-radius: 15px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.9);
             width: 100%;
-            max-width: 550px;
+            max-width: 500px;
             text-align: center;
             border: 1px solid #333;
         }
@@ -30,21 +31,20 @@
             color: #00ffcc;
             margin-bottom: 1.5rem;
             font-weight: bold;
-            text-transform: uppercase;
         }
 
         input {
             width: 100%;
-            padding: 18px;
+            padding: 15px;
             border: 2px solid #333;
             border-radius: 10px;
             background: #000;
             color: #fff;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             margin-bottom: 20px;
             box-sizing: border-box;
             outline: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s;
         }
 
         .stats-row {
@@ -52,91 +52,84 @@
             justify-content: space-between;
             margin-bottom: 20px;
             font-family: 'Courier New', monospace;
-            font-size: 0.95rem;
-            color: #aaa;
-            padding: 0 10px;
+            font-size: 0.9rem;
+            color: #888;
         }
 
         .rule {
             text-align: left;
-            padding: 14px;
-            margin: 10px 0;
+            padding: 12px;
+            margin: 8px 0;
             border-radius: 8px;
             background: #2d1a1a;
             color: #ffaaaa;
-            border-left: 6px solid #ff4444;
+            border-left: 5px solid #ff4444;
             display: none;
-            animation: slideIn 0.4s ease-out;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .rule.visible { display: block; }
         .rule.success {
             background: #1a2d1a;
             color: #aaffaa;
-            border-left: 6px solid #44ff44;
+            border-left: 5px solid #44ff44;
         }
 
         #winBtn {
             background: #00ffcc;
             color: #000;
             border: none;
-            padding: 18px;
+            padding: 15px;
             font-weight: 900;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             display: none;
             width: 100%;
-            margin-top: 25px;
-            text-transform: uppercase;
+            margin-top: 20px;
         }
 
-        #leaderboard {
+        #leaderboard-section {
             margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid #333;
-            font-size: 0.9rem;
-            color: #777;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        td { padding: 10px; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>PASSWORD GAME 2.0</h1>
-    <div id="progress-container">Status: <span id="rules-cleared">1</span> / 11 Rules</div>
+    <h1>PASSWORD GAME</h1>
+    <div id="progress-container">Status: <span id="rules-cleared">1</span> / 11 Rules Unlocked</div>
 
     <div class="stats-row">
         <span>LEN: <b id="stat-len">0</b></span>
         <span>SUM: <b id="stat-sum">0</b></span>
-        <span>MODEL: <b id="stat-llm">NONE</b></span>
+        <span>AI: <b id="stat-llm">NONE</b></span>
     </div>
 
-    <input type="text" id="passwordInput" oninput="checkPassword()" placeholder="Begin your sequence...">
+    <input type="text" id="passwordInput" oninput="checkPassword()" placeholder="Enter sequence...">
 
     <div id="rulesList">
         <div id="rule-len" class="rule visible">Rule 1: At least 5 characters</div>
         <div id="rule-num" class="rule">Rule 2: Must include a number</div>
         <div id="rule-cap" class="rule">Rule 3: Must include an uppercase letter</div>
-        <div id="rule-elem" class="rule">Rule 4: Must include an element symbol (H, C, Sn, Au...)</div>
-        <div id="rule-roman" class="rule">Rule 5: Must include a Roman numeral (I, V, X...)</div>
+        <div id="rule-elem" class="rule">Rule 4: Must include an element symbol (H, C, Au...)</div>
+        <div id="rule-roman" class="rule">Rule 5: Must include a Roman numeral</div>
         <div id="rule-emoji" class="rule">Rule 6: Must include an emoji</div>
         <div id="rule-sum" class="rule">Rule 7: Digits must add up to 25</div>
         <div id="rule-leap" class="rule">Rule 8: Must include a 4-digit leap year</div>
         <div id="rule-self" class="rule">Rule 9: Must include its own length</div>
         <div id="rule-fire" class="rule">Rule 10: Must contain the word "fire"</div>
-        <div id="rule-llm" class="rule">Rule 11: Must include an AI model (Gemini, GPT, Claude...)</div>
+        <div id="rule-llm" class="rule">Rule 11: Must include an AI model (GPT, Gemini, Claude...)</div>
     </div>
 
-    <button id="winBtn" onclick="recordWin()">SUBMIT TO LEADERBOARD</button>
+    <button id="winBtn" onclick="recordWin()">SUBMIT RECORD</button>
 
-    <div id="leaderboard">
-        🏆 Current Record: <span id="bestScore">--</span> by <span id="bestUser">--</span>
+    <div id="leaderboard-section">
+        <div id="leaderboard"></div>
     </div>
 </div>
 
@@ -159,7 +152,7 @@
             { id: "rule-len", check: len >= 5 },
             { id: "rule-num", check: /[0-9]/.test(pw) },
             { id: "rule-cap", check: /[A-Z]/.test(pw) },
-            { id: "rule-elem", check: /(H|He|Li|Be|B|C|N|O|F|Ne|Na|Mg|Al|Si|P|S|Cl|Ar|K|Ca|Fe|Au|Ag|Sn|Pb|I|V|carbon|iron|tin|gold)/i.test(pw) },
+            { id: "rule-elem", check: /(H|He|Li|Be|B|C|N|O|F|Ne|Na|Mg|Al|Si|P|S|Cl|Ar|K|Ca|Fe|Au|Ag|Sn|Pb|I|V)/i.test(pw) },
             { id: "rule-roman", check: /[IVXLCDM]/.test(pw) },
             { id: "rule-emoji", check: /\p{Extended_Pictographic}/u.test(pw) },
             { id: "rule-sum", check: sum === 25 },
@@ -188,45 +181,49 @@
 
         document.getElementById("rules-cleared").innerText = count;
         document.getElementById("winBtn").style.display = rules.every(r => r.check) ? "block" : "none";
-        
-        document.getElementById("passwordInput").style.boxShadow = pw.toLowerCase().includes("fire") 
-            ? "0 0 20px #ff4500" : "none";
+        document.getElementById("passwordInput").style.boxShadow = pw.toLowerCase().includes("fire") ? "0 0 15px #ff4500" : "none";
     }
 
     function recordWin() {
-        const name = prompt("Enter your name for the record:");
-        
-        // ADMIN OVERRIDE
+        const name = prompt("Enter your name:");
         if (name === "Test") {
-            localStorage.removeItem("pwBest");
-            localStorage.removeItem("pwUser");
-            alert("Leaderboard Cleared. System Reset.");
+            localStorage.removeItem("pwLeaderboard");
+            alert("Leaderboard Cleared.");
             location.reload();
             return;
         }
 
         const len = document.getElementById("passwordInput").value.length;
-        const currentBest = localStorage.getItem("pwBest") || 999;
-
-        if (len < currentBest) {
-            localStorage.setItem("pwBest", len);
-            localStorage.setItem("pwUser", name || "Anonymous");
-            alert("NEW WORLD RECORD!");
-        } else {
-            alert("Winner! But not quite a record.");
-        }
+        let board = JSON.parse(localStorage.getItem("pwLeaderboard") || "[]");
+        board.push({ name: name || "Anonymous", score: len });
+        board.sort((a, b) => a.score - b.score);
+        localStorage.setItem("pwLeaderboard", JSON.stringify(board.slice(0, 5)));
         updateLeaderboard();
     }
 
     function updateLeaderboard() {
-        const score = localStorage.getItem("pwBest");
-        const user = localStorage.getItem("pwUser");
-        if (score) {
-            document.getElementById("bestScore").innerText = score + " chars";
-            document.getElementById("bestUser").innerText = user;
+        const board = JSON.parse(localStorage.getItem("pwLeaderboard") || "[]");
+        const container = document.getElementById("leaderboard");
+        
+        const getColor = (s) => {
+            if (s === 16) return 'color: #ffd700; text-shadow: 0 0 8px #ffcc00; font-weight: bold;';
+            if (s < 20)  return 'color: #e5e4e2;';
+            if (s < 50)  return 'color: #cd7f32;';
+            return 'color: #777;';
+        };
+
+        if (board.length === 0) {
+            container.innerHTML = "<p style='color:#555'>No records yet.</p>";
+            return;
         }
+
+        let html = "<h3>🏆 TOP 5 RECORDS</h3><table>";
+        board.forEach((entry, index) => {
+            const style = getColor(entry.score);
+            html += `<tr><td style="${style}">${index+1}. ${entry.name}</td><td style="text-align:right; ${style}">${entry.score}</td></tr>`;
+        });
+        container.innerHTML = html + "</table>";
     }
 </script>
-
 </body>
 </html>
