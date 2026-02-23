@@ -5,18 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Password Game: Hawk Edition</title>
     <style>
+        :root {
+            --bg: #0d0d0d;
+            --container: #161616;
+            --accent: #00ffcc;
+            --error: #ff4444;
+            --success: #44ff44;
+        }
+
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #0d0d0d;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
             color: #e0e0e0;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+            transition: background 0.5s;
+        }
+
+        /* SCREEN SHATTER EFFECT */
+        .shattered { background: #000 !important; overflow: hidden; }
+        .shattered .container { display: none; }
+        
+        #glass-crack {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+            background: 
+                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 50%, 0% 20%, 50% 50%, 20% 0%, 50% 50%, 80% 0%, 50% 50%, 100% 20%, 50% 50%, 100% 80%, 50% 50%, 80% 100%, 50% 50%, 20% 100%, 50% 50%, 0% 80%, 50% 50%);
+        }
+
+        #giant-chick {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 20rem;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10000;
+            pointer-events: none;
         }
 
         .container {
-            background: #161616;
+            background: var(--container);
             padding: 2rem;
             border-radius: 15px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.9);
@@ -24,13 +62,7 @@
             max-width: 500px;
             text-align: center;
             border: 1px solid #333;
-        }
-
-        #progress-container {
-            font-size: 1.1rem;
-            color: #00ffcc;
-            margin-bottom: 1.5rem;
-            font-weight: bold;
+            z-index: 1;
         }
 
         input {
@@ -44,16 +76,6 @@
             margin-bottom: 20px;
             box-sizing: border-box;
             outline: none;
-            transition: all 0.3s;
-        }
-
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: #888;
         }
 
         .rule {
@@ -63,7 +85,7 @@
             border-radius: 8px;
             background: #2d1a1a;
             color: #ffaaaa;
-            border-left: 5px solid #ff4444;
+            border-left: 5px solid var(--error);
             display: none;
             font-size: 0.9rem;
         }
@@ -72,11 +94,11 @@
         .rule.success {
             background: #1a2d1a;
             color: #aaffaa;
-            border-left: 5px solid #44ff44;
+            border-left: 5px solid var(--success);
         }
 
         #winBtn {
-            background: #00ffcc;
+            background: var(--accent);
             color: #000;
             border: none;
             padding: 15px;
@@ -85,32 +107,29 @@
             cursor: pointer;
             display: none;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
-        #leaderboard-section {
-            margin-top: 30px;
-            padding-top: 20px;
+        #leaderboard {
+            margin-top: 25px;
             border-top: 1px solid #333;
+            padding-top: 15px;
         }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        td { padding: 10px; border-bottom: 1px solid #222; }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 8px; font-family: monospace; }
     </style>
 </head>
-<body>
+<body id="body">
+
+<div id="giant-chick">🐣</div>
+<div id="glass-crack"></div>
 
 <div class="container">
-    <h1>PASSWORD GAME</h1>
-    <div id="progress-container">Status: <span id="rules-cleared">1</span> / 11 Rules Unlocked</div>
+    <h1 style="margin-top:0; color:var(--accent)">HAWK EDITION</h1>
+    <div id="status" style="margin-bottom:15px; font-weight:bold;">Rules Cleared: <span id="rules-cleared">1</span> / 12</div>
 
-    <div class="stats-row">
-        <span>LEN: <b id="stat-len">0</b></span>
-        <span>SUM: <b id="stat-sum">0</b></span>
-        <span>AI: <b id="stat-llm">NONE</b></span>
-    </div>
-
-    <input type="text" id="passwordInput" oninput="checkPassword()" placeholder="Enter sequence...">
+    <input type="text" id="passwordInput" oninput="checkPassword()" placeholder="Enter password..." spellcheck="false">
 
     <div id="rulesList">
         <div id="rule-len" class="rule visible">Rule 1: At least 5 characters</div>
@@ -122,31 +141,37 @@
         <div id="rule-sum" class="rule">Rule 7: Digits must add up to 25</div>
         <div id="rule-leap" class="rule">Rule 8: Must include a 4-digit leap year</div>
         <div id="rule-self" class="rule">Rule 9: Must include its own length</div>
-        <div id="rule-fire" class="rule">Rule 10: Must contain the word "fire"</div>
-        <div id="rule-llm" class="rule">Rule 11: Must include an AI model (GPT, Gemini, Claude...)</div>
+        <div id="rule-fire" class="rule">Rule 10: Must contain "fire"</div>
+        <div id="rule-llm" class="rule">Rule 11: Must include an AI model (GPT, Gemini, etc.)</div>
+        <div id="rule-egg" class="rule">Rule 12: The 🥚 is fragile. It must be at the very end.</div>
     </div>
 
     <button id="winBtn" onclick="recordWin()">SUBMIT RECORD</button>
-
-    <div id="leaderboard-section">
-        <div id="leaderboard"></div>
-    </div>
+    <div id="leaderboard"></div>
 </div>
 
 <script>
+    let hasHatched = false;
+    let isEating = false;
+
     window.onload = updateLeaderboard;
 
     function checkPassword() {
-        const pw = document.getElementById("passwordInput").value;
+        if (isEating) return;
+
+        const input = document.getElementById("passwordInput");
+        let pw = input.value;
         const len = pw.length;
         
+        // CHICK ATTACK TRIGGER
+        if (hasHatched && !pw.includes("🐣")) {
+            triggerChickAttack(input);
+            return;
+        }
+
         const digits = pw.match(/\d/g) || [];
         const sum = digits.reduce((a, b) => a + parseInt(b), 0);
-        const llmMatch = pw.match(/gemini|gpt|claude|llama|mistral|deepseek|olama/i);
-        
-        document.getElementById("stat-len").innerText = len;
-        document.getElementById("stat-sum").innerText = sum;
-        document.getElementById("stat-llm").innerText = llmMatch ? llmMatch[0].toUpperCase() : "NONE";
+        const llmMatch = pw.match(/gemini|gpt|claude|llama|mistral|deepseek/i);
 
         const rules = [
             { id: "rule-len", check: len >= 5 },
@@ -159,71 +184,100 @@
             { id: "rule-leap", check: (pw.match(/\d{4}/g) || []).some(y => (y%4==0 && y%100!=0) || y%400==0) },
             { id: "rule-self", check: pw.includes(len.toString()) },
             { id: "rule-fire", check: pw.toLowerCase().includes("fire") },
-            { id: "rule-llm", check: llmMatch !== null }
+            { id: "rule-llm", check: llmMatch !== null },
+            { id: "rule-egg", check: pw.endsWith("🥚") || pw.endsWith("🐣") }
         ];
 
-        let canUnlockNext = true;
         let count = 0;
+        let canShowNext = true;
 
         rules.forEach(rule => {
             const el = document.getElementById(rule.id);
-            if (canUnlockNext || el.classList.contains("visible")) {
+            if (canShowNext) {
                 el.classList.add("visible");
                 count++;
                 if (rule.check) {
                     el.classList.add("success");
                 } else {
                     el.classList.remove("success");
-                    canUnlockNext = false; 
+                    canShowNext = false;
                 }
             }
         });
 
+        // HATCH LOGIC
+        if (rules.every(r => r.check) && pw.endsWith("🥚")) {
+            input.value = pw.replace("🥚", "🐣");
+            hasHatched = true;
+        }
+
         document.getElementById("rules-cleared").innerText = count;
-        document.getElementById("winBtn").style.display = rules.every(r => r.check) ? "block" : "none";
-        document.getElementById("passwordInput").style.boxShadow = pw.toLowerCase().includes("fire") ? "0 0 15px #ff4500" : "none";
+        document.getElementById("winBtn").style.display = (rules.every(r => r.check) && hasHatched) ? "block" : "none";
+    }
+
+    function triggerChickAttack(input) {
+        isEating = true;
+        input.disabled = true;
+        
+        let interval = setInterval(() => {
+            if (input.value.length > 0) {
+                input.value = input.value.substring(1);
+                document.getElementById("status").innerText = "🐣 CHOMP...";
+            } else {
+                clearInterval(interval);
+                executePeck();
+            }
+        }, 100);
+    }
+
+    function executePeck() {
+        const chick = document.getElementById("giant-chick");
+        chick.style.transform = "translate(-50%, -50%) scale(1)";
+        
+        setTimeout(() => {
+            chick.style.transform = "translate(-50%, -50%) scale(1.6)"; // THE PECK
+            document.getElementById("body").classList.add("shattered");
+            document.getElementById("glass-crack").style.display = "block";
+            
+            setTimeout(() => {
+                location.reload(); // Hard reset
+            }, 3500);
+        }, 800);
     }
 
     function recordWin() {
-        const name = prompt("Enter your name:");
-        if (name === "Test") {
-            localStorage.removeItem("pwLeaderboard");
-            alert("Leaderboard Cleared.");
-            location.reload();
-            return;
-        }
-
+        const name = prompt("Enter your name for the Hall of Fame:");
+        if (name === "Test") { localStorage.removeItem("pwLeaderboard"); location.reload(); return; }
+        
         const len = document.getElementById("passwordInput").value.length;
         let board = JSON.parse(localStorage.getItem("pwLeaderboard") || "[]");
         board.push({ name: name || "Anonymous", score: len });
         board.sort((a, b) => a.score - b.score);
         localStorage.setItem("pwLeaderboard", JSON.stringify(board.slice(0, 5)));
         updateLeaderboard();
+        alert("RECORD SAVED.");
     }
 
     function updateLeaderboard() {
         const board = JSON.parse(localStorage.getItem("pwLeaderboard") || "[]");
         const container = document.getElementById("leaderboard");
-        
+        if (board.length === 0) { container.innerHTML = "<small>No records yet.</small>"; return; }
+
         const getColor = (s) => {
-            if (s === 16) return 'color: #ffd700; text-shadow: 0 0 8px #ffcc00; font-weight: bold;';
-            if (s < 20)  return 'color: #e5e4e2;';
+            if (s <= 17) return 'color: #ffd700; text-shadow: 0 0 8px #ffcc00; font-weight: bold;';
+            if (s < 25)  return 'color: #e5e4e2;';
             if (s < 50)  return 'color: #cd7f32;';
             return 'color: #777;';
         };
 
-        if (board.length === 0) {
-            container.innerHTML = "<p style='color:#555'>No records yet.</p>";
-            return;
-        }
-
-        let html = "<h3>🏆 TOP 5 RECORDS</h3><table>";
-        board.forEach((entry, index) => {
+        let html = "<h3 style='margin-bottom:10px'>🏆 TOP 5 SPEEDRUNS</h3><table>";
+        board.forEach((entry, i) => {
             const style = getColor(entry.score);
-            html += `<tr><td style="${style}">${index+1}. ${entry.name}</td><td style="text-align:right; ${style}">${entry.score}</td></tr>`;
+            html += `<tr><td style="${style}">${i+1}. ${entry.name}</td><td style="text-align:right; ${style}">${entry.score} chars</td></tr>`;
         });
         container.innerHTML = html + "</table>";
     }
 </script>
+
 </body>
 </html>
